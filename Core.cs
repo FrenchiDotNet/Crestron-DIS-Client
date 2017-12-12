@@ -146,7 +146,7 @@ namespace DIS_Client {
 
         	if(serverConnected && !queryInProgress) {
 
-        		queryInProgress = true;
+                queryInProgress = true;
                 QueueCommand("get status");
 
         	}
@@ -169,7 +169,7 @@ namespace DIS_Client {
 
                 DebugString(String.Format("Received Response: {0}", lines[i]));
 
-    			if(lines[i].IndexOf("status") >= 0  && lines[i].Length >= 14) {
+                if(lines[i].IndexOf("status") >= 0  && lines[i].Length >= 14) {
 
     				char dat = lines[i][13];
 
