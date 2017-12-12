@@ -1,0 +1,9 @@
+/bin/*.config
+/bin/*.dll
+/bin/*.pdb
+/bin/*.info
+/bin/*.ser
+/bin/*.dat
+/obj
+/Properties
+*.csproj

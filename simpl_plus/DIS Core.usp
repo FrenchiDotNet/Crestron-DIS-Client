@@ -1,0 +1,58 @@
+/*
+Dealer Name: Ask The Advisors
+Programmer: Ryan French
+*/
+
+#SYMBOL_NAME "DIS Core v1.0"
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+#PRINT_TO_TRACE
+#USER_SIMPLSHARP_LIBRARY "DIS_Client"
+
+//=====// I/O //=====//
+
+DIGITAL_INPUT RequestDelegateInfo;
+
+DIGITAL_OUTPUT Connected_Fb;
+
+STRING_OUTPUT Debug$;
+
+STRING_PARAMETER _SKIP_,
+				 _SKIP_,
+			     IP_Address[15];
+
+INTEGER_PARAMETER Port;
+
+//=====// VARIABLES //=====//
+
+//=====// FUNCTIONS //=====//
+
+//=====// EVENTS //=====//
+
+PUSH RequestDelegateInfo {
+	Core.RequestDelegateInfo();
+}
+
+//=====// CALLBACKS //=====//
+
+CALLBACK FUNCTION ConnectionStatusHandler (INTEGER _state) {
+	Connected_Fb = _state;
+}
+
+CALLBACK FUNCTION DebugStringHandler (STRING _str) {
+	Debug$ = _str;
+}
+
+//=====// MAIN //=====//
+
+FUNCTION Main () {
+
+	WAITFORINITIALIZATIONCOMPLETE();
+
+	RegisterDelegate(Core, ConnectionStatusEvent, ConnectionStatusHandler);
+	RegisterDelegate(Core, DebugString, DebugStringHandler);
+                                             
+	Core.TCPClientSettings(IP_Address, Port);
+
+}
