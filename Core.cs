@@ -144,12 +144,12 @@ namespace DIS_Client {
 
         public static void RequestDelegateInfo() {
 
-        	if(serverConnected && !queryInProgress) {
+            if(serverConnected && !queryInProgress) {
 
                 queryInProgress = true;
                 QueueCommand("get status");
 
-        	}
+            }
 
         }
 
