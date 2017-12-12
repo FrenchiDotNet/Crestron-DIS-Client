@@ -12,7 +12,7 @@ using Crestron.SimplSharp.CrestronSockets;
 
 namespace DIS_Client {
 
-	//-------------------------------------//
+    //-------------------------------------//
     //       Class | Core
     // Description | ...
     //-------------------------------------//
@@ -201,11 +201,11 @@ namespace DIS_Client {
 
     	}
 
-    	//-------------------------------------//
-	    //    Function | CheckSeatsByte
-	    // Description | Gets state of each bit in passed character and returns
-	    //				 a bool array.
-	    //-------------------------------------//
+        //-------------------------------------//
+        //    Function | CheckSeatsByte
+        // Description | Gets state of each bit in passed character and returns
+        //				 a bool array.
+        //-------------------------------------//
 
     	internal static bool[] CheckSeatsByte(char _c) {
 
@@ -219,10 +219,10 @@ namespace DIS_Client {
 
     	}
 
-    	//-------------------------------------//
-	    //    Function | CheckActiveDelegates
-	    // Description | ...
-	    //-------------------------------------//
+        //-------------------------------------//
+        //    Function | CheckActiveDelegates
+        // Description | ...
+        //-------------------------------------//
 
 	    internal static void CheckActiveDelegates(char _seats1_8, char _seats9_16, char _seats17_24) {
 
@@ -241,10 +241,10 @@ namespace DIS_Client {
 
 	    }
 
-    	//-------------------------------------//
-	    //    Function | CheckStatus
-	    // Description | Gets state of each bit and checks for error conditions.
-	    //-------------------------------------//
+        //-------------------------------------//
+        //    Function | CheckStatus
+        // Description | Gets state of each bit and checks for error conditions.
+        //-------------------------------------//
 
     	internal static bool CheckStatus(char _c) {
 
@@ -276,9 +276,9 @@ namespace DIS_Client {
     	}
 
     	//-------------------------------------//
-	    //    Function | GenerateErrors
-	    // Description | ...
-	    //-------------------------------------//
+        //    Function | GenerateErrors
+        // Description | ...
+        //-------------------------------------//
 
 	    internal static void GenerateErrors() {
 
@@ -309,7 +309,7 @@ namespace DIS_Client {
 
     	//===================// Event Handlers //===================//
 
-    	//-------------------------------------//
+        //-------------------------------------//
         //    Function | clientSocketChange
         // Description | Event handler for TCP client socket status. If socket disconnects, function 
         //               attempts to reconnect and starts timer to re-attempt connection every 15s.
