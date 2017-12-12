@@ -1,5 +1,4 @@
 /*
-Dealer Name: Ask The Advisors
 Programmer: Ryan French
 */
 
@@ -20,7 +19,7 @@ STRING_OUTPUT Debug$;
 
 STRING_PARAMETER _SKIP_,
 				 _SKIP_,
-			     IP_Address[15];
+				 IP_Address[15];
 
 INTEGER_PARAMETER Port;
 

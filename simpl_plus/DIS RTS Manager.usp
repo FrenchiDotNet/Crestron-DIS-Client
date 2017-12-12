@@ -1,0 +1,111 @@
+/*
+Programmer: Ryan French
+*/
+
+#SYMBOL_NAME "DIS RTS Manager v1.0"
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+#PRINT_TO_TRACE
+#USER_SIMPLSHARP_LIBRARY "DIS_Client"
+
+//=====// I/O //=====//
+
+DIGITAL_INPUT BeginMeeting,
+			  EndMeeting,
+			  RetryInfoRequest,
+			  NextSpeaker,
+			  RequestToSpeak[24];
+
+DIGITAL_OUTPUT MeetingInProgress,
+			   SeatLEDRed[24],
+			   SeatLEDGreen[24],
+			   QueuePositionVisible[24];
+
+STRING_OUTPUT CurrentSpeakerName,
+			  NextSpeakerName,
+			  QueueSeatNumber[24],
+			  QueueName[24];
+
+//=====// VARIABLES //=====//
+
+//=====// FUNCTIONS //=====//
+
+//=====// EVENTS //=====//
+
+PUSH BeginMeeting {
+	RTS.BeginMeeting();
+}
+
+PUSH EndMeeting {
+	RTS.EndMeeting();
+}
+
+PUSH RetryInfoRequest {
+	RTS.RetryInfoRequest();
+}
+
+PUSH NextSpeaker {
+	RTS.NextSpeaker();
+}
+
+PUSH RequestToSpeak {
+	RTS.RequestToSpeak(GETLASTMODIFIEDARRAYINDEX());
+}
+
+//=====// CALLBACKS //=====//
+
+CALLBACK FUNCTION delegateListUpdateHandler(INTEGER _pos, INTEGER _enabled, INTEGER _seat, STRING _name) {
+
+	QueuePositionVisible[_pos] = _enabled;
+	QueueSeatNumber[_pos]      = ITOA(_seat);
+	QueueName[_pos]            = _name;
+
+}
+
+CALLBACK FUNCTION buttonStateUpdateHandler(INTEGER _seat, INTEGER _state) {
+
+	IF(_state = 0) {
+		SeatLEDRed[_seat]   = 0;
+		SeatLEDGreen[_seat] = 0;
+	} ELSE IF (_state = 1) {
+		SeatLEDRed[_seat]   = 1;
+		SeatLEDGreen[_seat] = 0;
+	} ELSE IF (_state = 2) {
+		SeatLEDRed[_seat]   = 0;
+		SeatLEDGreen[_seat] = 1;
+	}
+	
+}
+
+CALLBACK FUNCTION currentSpeakerUpdateHandler(STRING _name) {
+	
+	CurrentSpeakerName = _name;
+
+}
+
+CALLBACK FUNCTION nextSpeakerUpdateHandler(STRING _name) {
+	
+	NextSpeakerName = _name;
+
+}
+
+CALLBACK FUNCTION meetingInProgressUpdateHandler(INTEGER _state) {
+	
+	MeetingInProgress = _state;
+
+}
+
+//=====// MAIN //=====//
+
+FUNCTION Main () {
+
+	WAITFORINITIALIZATIONCOMPLETE();
+
+	RegisterDelegate(RTS, delegateListUpdate, delegateListUpdateHandler);
+	RegisterDelegate(RTS, buttonStateUpdate, buttonStateUpdateHandler);
+	RegisterDelegate(RTS, currentSpeakerUpdate, currentSpeakerUpdateHandler);
+	RegisterDelegate(RTS, nextSpeakerUpdate, nextSpeakerUpdateHandler);
+	RegisterDelegate(RTS, meetingInProgressUpdate, meetingInProgressUpdateHandler);
+
+}

@@ -84,12 +84,32 @@ namespace DIS_Client {
 
             serverIp    = _ip;
             serverPort  = _prt;
-            okToConnect = true;
 
             client = new TCPClient(serverIp, serverPort, 10240);
             client.SocketStatusChange += new TCPClientSocketStatusChangeEventHandler(clientSocketChange);
+
+        }
+
+        //-------------------------------------//
+        //    Function | EnableConnect
+        // Description | ...
+        //-------------------------------------//
+
+        public static void EnableConnect() {
+
+            okToConnect = true;
             ServerConnect();
 
+        }
+
+        //-------------------------------------//
+        //    Function | DisableConnect
+        // Description | ...
+        //-------------------------------------//
+        public static void DisableConnect() {
+
+            okToConnect = false;
+            ServerDisconnect();
         }
 
         //-------------------------------------//
@@ -107,6 +127,26 @@ namespace DIS_Client {
             } catch (Exception _er) {
 
                 ErrorLog.Error("[ERROR] Error connecting to DIS at address {0}: {1}", serverIp, _er);
+
+            }
+
+        }
+
+        //-------------------------------------//
+        //    Function | ServerDisconnect
+        // Description | Disconnects from the server.
+        //-------------------------------------//
+
+        internal static void ServerDisconnect() {
+
+            try {
+
+                client.DisconnectFromServer();
+                reconnectTimer.Stop();
+
+            } catch (Exception _er) {
+
+                ErrorLog.Error("[ERROR] Error disconnecting from DIS at address {0}: {1}", serverIp, _er);
 
             }
 
@@ -318,11 +358,13 @@ namespace DIS_Client {
 
         internal static void clientSocketChange(TCPClient _cli, SocketStatus _status) {
 
-            if (_status != SocketStatus.SOCKET_STATUS_CONNECTED && okToConnect) {
+            if (_status != SocketStatus.SOCKET_STATUS_CONNECTED) {
 
                 serverConnected = false;
                 queryInProgress = false;
-                ServerConnect();
+
+                if(okToConnect)
+                    ServerConnect();
 
             } else if (_status == SocketStatus.SOCKET_STATUS_CONNECTED) {
 
@@ -335,12 +377,14 @@ namespace DIS_Client {
         //-------------------------------------//
         //    Function | clientConnect
         // Description | Handler for TCP client connect event. Begins listening for incoming 
-        //               data from server.
+        //               data from server, then notifies RTS class so that information can
+        //               be requested from server if a meeting is in progress.
         //-------------------------------------//
 
         internal static void clientConnect (TCPClient _cli) {
 
             client.ReceiveDataAsync(clientDataRX);
+            RTS.ServerConnectedCallback();
 
         }
 
@@ -406,13 +450,13 @@ namespace DIS_Client {
         //				 ConnectionStatusEvent delegate for S+ update
         //-------------------------------------//
 
-        internal static bool serverConnected {
+        public static bool serverConnected {
 
         	get { 
         		return _serverConnected; 
         	}
 
-        	set {
+        	internal set {
         		_serverConnected = value;
         		ConnectionStatusEvent((ushort)(value == true ? 1 : 0));
         	}
@@ -422,6 +466,7 @@ namespace DIS_Client {
     } // End DIS_Client class
 
     public delegate void DelegateUshort (ushort value);
-    public delegate void DelegateString (SimplSharpString value);
+    public delegate void DelegateString (SimplSharpString str);
+    public delegate void DelegateUshortString (ushort value1, ushort value2, SimplSharpString str);
 
 }
