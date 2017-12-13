@@ -58,7 +58,6 @@ namespace DIS_Client {
 
     	public static DelegateUshort ConnectionStatusEvent { get; set; }
     	public static DelegateString ServerStatusError { get; set; }
-        public static DelegateString DebugString { get; set; }
 
     	//===================// Constructor //===================//
 
@@ -207,8 +206,6 @@ namespace DIS_Client {
     			if(lines[i] == "" || lines[i].IndexOf("report") < 0)
     				continue;
 
-                DebugString(String.Format("Received Response: {0}", lines[i]));
-
                 if(lines[i].IndexOf("status") >= 0  && lines[i].Length >= 14) {
 
     				char dat = lines[i][13];
@@ -233,7 +230,6 @@ namespace DIS_Client {
     				string dat2 = lines[i].Substring(20);
 
     				delegateNames[dat1] = dat2;
-    				DebugString(String.Format("Delegate {0}: {1}", (dat1 + 1), dat2));
 
     			}
 

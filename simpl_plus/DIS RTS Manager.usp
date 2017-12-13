@@ -2,7 +2,7 @@
 Programmer: Ryan French
 */
 
-#SYMBOL_NAME "DIS RTS Manager v1.0"
+#SYMBOL_NAME "DIS RTS Manager v1.1"
 #DEFAULT_VOLATILE
 #ENABLE_STACK_CHECKING
 #ENABLE_TRACE
@@ -11,13 +11,18 @@ Programmer: Ryan French
 
 //=====// I/O //=====//
 
-DIGITAL_INPUT BeginMeeting,
+DIGITAL_INPUT _SKIP_,
+			  _SKIP_,
+			  BeginMeeting,
 			  EndMeeting,
 			  RetryInfoRequest,
 			  NextSpeaker,
 			  RequestToSpeak[24];
 
-DIGITAL_OUTPUT MeetingInProgress,
+DIGITAL_OUTPUT _SKIP_,
+			   _SKIP_,
+			   Connected_Fb,
+			   MeetingInProgress,
 			   SeatLEDRed[24],
 			   SeatLEDGreen[24],
 			   QueuePositionVisible[24];
@@ -26,6 +31,10 @@ STRING_OUTPUT CurrentSpeakerName,
 			  NextSpeakerName,
 			  QueueSeatNumber[24],
 			  QueueName[24];
+
+STRING_PARAMETER IP_Address[15];
+
+INTEGER_PARAMETER Port;
 
 //=====// VARIABLES //=====//
 
@@ -54,6 +63,10 @@ PUSH RequestToSpeak {
 }
 
 //=====// CALLBACKS //=====//
+
+CALLBACK FUNCTION ConnectionStatusHandler (INTEGER _state) {
+	Connected_Fb = _state;
+}
 
 CALLBACK FUNCTION delegateListUpdateHandler(INTEGER _pos, INTEGER _enabled, INTEGER _seat, STRING _name) {
 
@@ -107,5 +120,9 @@ FUNCTION Main () {
 	RegisterDelegate(RTS, currentSpeakerUpdate, currentSpeakerUpdateHandler);
 	RegisterDelegate(RTS, nextSpeakerUpdate, nextSpeakerUpdateHandler);
 	RegisterDelegate(RTS, meetingInProgressUpdate, meetingInProgressUpdateHandler);
+
+	RegisterDelegate(Core, ConnectionStatusEvent, ConnectionStatusHandler);
+                                             
+	Core.TCPClientSettings(IP_Address, Port);
 
 }

@@ -115,10 +115,10 @@ namespace DIS_Client {
 
     	public static void RequestToSpeak(ushort _num) {
 
-    		if(!meetingInProgress)
-    			return;
-
     		int num = _num; // Cast as int
+
+    		if(!meetingInProgress || activeSpeaker == num)
+    			return;
 
     		if(requestQueue.Contains(num)) {
 
