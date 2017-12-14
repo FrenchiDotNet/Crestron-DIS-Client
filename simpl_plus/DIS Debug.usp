@@ -1,0 +1,38 @@
+/*
+Programmer: Ryan French
+*/
+
+#SYMBOL_NAME "DIS Debug"
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+#PRINT_TO_TRACE
+#USER_SIMPLSHARP_LIBRARY "DIS_Client"
+
+//=====// I/O //=====//
+
+STRING_OUTPUT DebugMessage;
+
+//=====// VARIABLES //=====//
+
+//=====// FUNCTIONS //=====//
+
+//=====// EVENTS //=====//
+
+//=====// CALLBACKS //=====//
+
+CALLBACK FUNCTION DebugStringHandler(STRING _msg) {
+
+	DebugMessage = _msg;
+
+}
+
+//=====// MAIN //=====//
+
+FUNCTION Main () {
+
+	WAITFORINITIALIZATIONCOMPLETE();
+
+	RegisterDelegate(Core, DebugString, DebugStringHandler);
+
+}

@@ -28,6 +28,7 @@ namespace DIS_Client {
     	internal static bool   okToConnect;
     	internal static bool   waitForTx;
     	internal static bool   _serverConnected;
+        internal static bool   _serverConnecting;
 
         internal static string rxBuf;
 
@@ -56,8 +57,12 @@ namespace DIS_Client {
 
     		// S+ Delegates //
 
-    	public static DelegateUshort ConnectionStatusEvent { get; set; }
+    	public static DelegateUshort ConnectedStatusEvent { get; set; }
+        public static DelegateUshort ConnectingStatusEvent { get; set; }
     	public static DelegateString ServerStatusError { get; set; }
+        public static DelegateUshort ServerErrorEvent { get; set; }
+
+        public static DelegateString DebugString { get; set; }
 
     	//===================// Constructor //===================//
 
@@ -96,6 +101,8 @@ namespace DIS_Client {
 
         public static void EnableConnect() {
 
+            Debug("Connecting to server...");
+
             okToConnect = true;
             ServerConnect();
 
@@ -120,6 +127,7 @@ namespace DIS_Client {
 
             try {
 
+                serverConnecting = true;
                 client.ConnectToServerAsync(clientConnect);
                 reconnectTimer = new CTimer(reconnectTimerHandler, 15000);
 
@@ -139,6 +147,11 @@ namespace DIS_Client {
         internal static void ServerDisconnect() {
 
             try {
+
+                // SocketStatus event doesn't fire on disconnect if it hasn't
+                // connected, so manually disable connection notifications here
+                serverConnecting = false;
+                serverConnected = false;
 
                 client.DisconnectFromServer();
                 reconnectTimer.Stop();
@@ -186,6 +199,7 @@ namespace DIS_Client {
             if(serverConnected && !queryInProgress) {
 
                 queryInProgress = true;
+                ServerErrorEvent(0); // Hide error msg if present
                 QueueCommand("get status");
 
             }
@@ -340,8 +354,16 @@ namespace DIS_Client {
 	    	}
 
 	    	ServerStatusError(errs);
+            ServerErrorEvent(1);
 
 	    }
+
+        public static void Debug(string _str) {
+
+            if(DebugString != null)
+                DebugString(_str);
+
+        }
 
     	//===================// Event Handlers //===================//
 
@@ -349,15 +371,26 @@ namespace DIS_Client {
         //    Function | clientSocketChange
         // Description | Event handler for TCP client socket status. If socket disconnects, function 
         //               attempts to reconnect and starts timer to re-attempt connection every 15s.
-        //               Also sends connection status (H/L) to S+.
+        //               Also sends connection status (H/L) to S+. If connected, begins listening for 
+        //               incoming data from server, then notifies RTS class so that information can
+        //               be requested from server if a meeting is in progress.
         //-------------------------------------//
 
         internal static void clientSocketChange(TCPClient _cli, SocketStatus _status) {
 
-            if (_status != SocketStatus.SOCKET_STATUS_CONNECTED) {
+            Debug(String.Format("Socket State is {0}", (int)_status));
 
-                serverConnected = false;
-                queryInProgress = false;
+            if (_status == SocketStatus.SOCKET_STATUS_NO_CONNECT ||
+                _status == SocketStatus.SOCKET_STATUS_CONNECT_FAILED ||
+                _status == SocketStatus.SOCKET_STATUS_BROKEN_REMOTELY ||
+                _status == SocketStatus.SOCKET_STATUS_BROKEN_LOCALLY ||
+                _status == SocketStatus.SOCKET_STATUS_LINK_LOST) {
+
+                serverConnected  = false;
+                serverConnecting = false;
+                queryInProgress  = false;
+
+                ServerErrorEvent(0);
 
                 if(okToConnect)
                     ServerConnect();
@@ -365,6 +398,12 @@ namespace DIS_Client {
             } else if (_status == SocketStatus.SOCKET_STATUS_CONNECTED) {
 
                 serverConnected = true;
+                serverConnecting = false;
+
+                 Debug("Server connected!");
+
+                client.ReceiveDataAsync(clientDataRX);
+                RTS.ServerConnectedCallback();
 
             }
 
@@ -372,15 +411,12 @@ namespace DIS_Client {
 
         //-------------------------------------//
         //    Function | clientConnect
-        // Description | Handler for TCP client connect event. Begins listening for incoming 
-        //               data from server, then notifies RTS class so that information can
-        //               be requested from server if a meeting is in progress.
+        // Description | ...
         //-------------------------------------//
 
         internal static void clientConnect (TCPClient _cli) {
 
-            client.ReceiveDataAsync(clientDataRX);
-            RTS.ServerConnectedCallback();
+            // Code moved to clientSocketChange
 
         }
 
@@ -443,7 +479,7 @@ namespace DIS_Client {
         //-------------------------------------//
         //    Property | serverConnected
         // Description | Stores TCP client connection status in bool and triggers
-        //				 ConnectionStatusEvent delegate for S+ update
+        //				 ConnectedStatusEvent delegate for S+ update
         //-------------------------------------//
 
         public static bool serverConnected {
@@ -454,8 +490,27 @@ namespace DIS_Client {
 
         	internal set {
         		_serverConnected = value;
-        		ConnectionStatusEvent((ushort)(value == true ? 1 : 0));
+        		ConnectedStatusEvent((ushort)(value == true ? 1 : 0));
         	}
+
+        }
+
+        //-------------------------------------//
+        //    Property | serverConnecting
+        // Description | Stores TCP client connecting status in bool and triggers
+        //               ConnectingStatusEvent delegate for S+ update
+        //-------------------------------------//
+
+        internal static bool serverConnecting {
+
+            get { 
+                return _serverConnecting; 
+            }
+
+            set {
+                _serverConnecting = value;
+                ConnectingStatusEvent((ushort)(value == true ? 1 : 0));
+            }
 
         }
 

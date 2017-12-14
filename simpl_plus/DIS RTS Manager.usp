@@ -17,20 +17,23 @@ DIGITAL_INPUT _SKIP_,
 			  EndMeeting,
 			  RetryInfoRequest,
 			  NextSpeaker,
-			  RequestToSpeak[24];
+			  RequestToSpeak[24,24];
 
 DIGITAL_OUTPUT _SKIP_,
 			   _SKIP_,
+			   Connecting_Fb,
 			   Connected_Fb,
 			   MeetingInProgress,
+			   ShowErrorReport,
 			   SeatLEDRed[24],
 			   SeatLEDGreen[24],
-			   QueuePositionVisible[24];
+			   QueuePositionVisible[24,24];
 
 STRING_OUTPUT CurrentSpeakerName,
 			  NextSpeakerName,
+			  ErrorReport,
 			  QueueSeatNumber[24],
-			  QueueName[24];
+			  QueueName[24,24];
 
 STRING_PARAMETER IP_Address[15];
 
@@ -64,8 +67,16 @@ PUSH RequestToSpeak {
 
 //=====// CALLBACKS //=====//
 
-CALLBACK FUNCTION ConnectionStatusHandler (INTEGER _state) {
+CALLBACK FUNCTION ConnectedStatusHandler (INTEGER _state) {
+
 	Connected_Fb = _state;
+
+}
+
+CALLBACK FUNCTION ConnectingStatusHandler (INTEGER _state) {
+
+	Connecting_Fb = _state;
+
 }
 
 CALLBACK FUNCTION delegateListUpdateHandler(INTEGER _pos, INTEGER _enabled, INTEGER _seat, STRING _name) {
@@ -109,6 +120,18 @@ CALLBACK FUNCTION meetingInProgressUpdateHandler(INTEGER _state) {
 
 }
 
+CALLBACK FUNCTION ServerStatusErrorHandler(STRING _err) {
+
+	ErrorReport = _err;
+
+}
+
+CALLBACK FUNCTION ServerErrorEventHandler(INTEGER _state) {
+
+	ShowErrorReport = _state;
+
+}
+
 //=====// MAIN //=====//
 
 FUNCTION Main () {
@@ -121,7 +144,10 @@ FUNCTION Main () {
 	RegisterDelegate(RTS, nextSpeakerUpdate, nextSpeakerUpdateHandler);
 	RegisterDelegate(RTS, meetingInProgressUpdate, meetingInProgressUpdateHandler);
 
-	RegisterDelegate(Core, ConnectionStatusEvent, ConnectionStatusHandler);
+	RegisterDelegate(Core, ConnectingStatusEvent, ConnectingStatusHandler);
+	RegisterDelegate(Core, ConnectedStatusEvent, ConnectedStatusHandler);
+	RegisterDelegate(Core, ServerStatusError, ServerStatusErrorHandler);
+	RegisterDelegate(Core, ServerErrorEvent, ServerErrorEventHandler);
                                              
 	Core.TCPClientSettings(IP_Address, Port);
 
